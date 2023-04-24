@@ -9,3 +9,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - 8000:8000
+    volumes:
+      - ./urls.yaml:/app/urls.yaml
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1

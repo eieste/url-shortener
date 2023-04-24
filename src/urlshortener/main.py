@@ -10,7 +10,7 @@ from flask import g
 import time
 import threading
 import pathlib
-
+import os
 import base64
 from io import BytesIO
 
@@ -23,6 +23,14 @@ log = logging.getLogger()
 OWN_URL = "https://short.flatos"
 FILE_DB = pathlib.Path("urls.yaml")
 dblock = threading.Lock()
+
+app = Flask(__name__)
+from werkzeug.debug import DebuggedApplication
+
+app.wsgi_app = DebuggedApplication(app.wsgi_app, True)
+
+app.debug = True
+print(os.getcwd())
 
 
 class DB:
@@ -77,9 +85,6 @@ def get_random_string(length):
     return result_str
 
 # create the Flask app
-app = Flask(__name__)
-
-
 
 @app.route('/')
 def home():

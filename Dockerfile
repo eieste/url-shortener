@@ -9,7 +9,7 @@ RUN pip3 install pillow \
 COPY ./ /app/
 COPY ./entrypoint.bash /
 
-RUN cd /app/; pip3 install .
+RUN cd /app/
 
 RUN useradd -ms /bin/bash app; \
     chown -R app:app /app
@@ -18,7 +18,7 @@ USER app
 
 WORKDIR /app
 
-RUN cd /app/; pip3 install .
+RUN cd /app/
 
 ENTRYPOINT /entrypoint.bash
 
