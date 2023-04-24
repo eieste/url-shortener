@@ -1,0 +1,5 @@
+uwsgi:
+  http: 0.0.0.0:8000
+  workers: 3
+  module: urlshortner.main:app
+  master: true

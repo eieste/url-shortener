@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>URL-Shortner</title>
+        <style>
+            .box{
+                border: 1px solid black;
+            }
+
+        </style>
+
+    </head>
+    <body>
+        <div class="box">
+            <label for="slug">Target-Slug</label>
+            <input type="text" id="slug" value="sampleabc" />
+        </div>
+        <div class="box">
+            <label for="url">URL</label>
+            <input type="text" id="url" value="http://example.com" />
+        </div>
+        <input type="button" value="Send" id="send"/>
+
+        <img src="" id="qrcode" />
+
+        <pre id="debug"></pre>
+
+        <script type="application/javascript">
+            document.addEventListener("DOMContentLoaded", () => {
+
+                let slug_elem = document.getElementById("slug");
+                let url_elem = document.getElementById("url");
+
+                let send_btn_elem = document.getElementById("send");
+                let debug_elem = document.getElementById("debug");
+
+                send_btn_elem.addEventListener("click", (event) => {
+
+                    fetch("/api/short", {
+                        "method": "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                        "body": JSON.stringify({
+                            "target_slug": slug_elem.value,
+                            "target_url": url_elem.value
+                        })
+                    }).then( resp => resp.json()).then( (json_data) => {
+                        debug_elem.innerHTML = JSON.stringify(json_data, indent=4);
+                        qrcode.src = "data:image/png;base64,"+json_data.qrcode
+                    })
+                });
+                console.log("Hello World!");
+            });
+
+
+        </script>
+
+
+    </body>
+
+</html>

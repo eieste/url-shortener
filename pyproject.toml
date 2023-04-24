@@ -1,0 +1,48 @@
+[project]
+name = "urlshortner"
+description = "Shortn URLs"
+version = "1.0.0"
+
+authors = [
+    { name = "Stefan Eiermann", email = "foss@ultraapp.de" }
+]
+
+dependencies = [
+  "pyyaml",
+  "flask",
+    "uwsgi",
+    "qrcode[pil]"
+]
+
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python"
+]
+
+[project.urls]
+homepage = "https://gitlab.com/eneka/toolbox/enekacli/eneka-cli"
+documentation = "https://eneka.gitlab.io/toolbox/enekacli/enkcli"
+repository = "https://gitlab.com/eneka/toolbox/enekacli/eneka-cli"
+
+#[project.scripts]
+#enkcli = "abc.main:entrypoint"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+pythonpath = [
+    "src"
+]
+
+[tool.coverage.paths]
+source = ["src", "*/site-packages"]
+
+[tool.coverage.run]
+branch = true
+source = ["src"]
+
+
+
