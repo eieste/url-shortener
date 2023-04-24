@@ -25,12 +25,6 @@ FILE_DB = pathlib.Path("urls.yaml")
 dblock = threading.Lock()
 
 app = Flask(__name__)
-from werkzeug.debug import DebuggedApplication
-
-app.wsgi_app = DebuggedApplication(app.wsgi_app, True)
-
-app.debug = True
-print(os.getcwd())
 
 
 class DB:
@@ -94,6 +88,11 @@ def home():
 @app.route('/api/short/', methods=['POST'])
 def create_short():
     content = request.get_json(silent=True)
+
+    initial_target_slug = content.get("target_slug", "")
+    if initial_target_slug.strip() == "":
+        initial_target_slug = None
+
     target_slug = content.get("target_slug", get_random_string(5))
     target_url = content.get("target_url")
 
@@ -108,7 +107,7 @@ def create_short():
             for _ in range(3):
                 x = db.find(target_slug=target_slug)
 
-                if x and content.get("target_slug") is not None:
+                if x and initial_target_slug is not None:
                     dblock.release()
                     log.warning(f"{target_slug} is already in use")
                     return {
@@ -139,6 +138,7 @@ def create_short():
         img.save(buffered, format="JPEG")
         img_str = base64.b64encode(buffered.getvalue())
         item["qrcode"] = img_str.decode("utf-8")
+        item["short_url"] = OWN_URL+"/"+item.get("target_slug")
         return item
     else:
         dblock.release()

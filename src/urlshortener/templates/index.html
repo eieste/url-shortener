@@ -13,14 +13,14 @@
     <body>
         <div class="box">
             <label for="slug">Target-Slug</label>
-            <input type="text" id="slug" value="sampleabc" />
+            <input type="text" id="slug" value="" />
         </div>
         <div class="box">
             <label for="url">URL</label>
-            <input type="text" id="url" value="http://example.com" />
+            <input type="text" id="url" value="" />
         </div>
         <input type="button" value="Send" id="send"/>
-
+        <input type="text" id="short_url" />
         <img src="" id="qrcode" />
 
         <pre id="debug"></pre>
@@ -29,8 +29,8 @@
             document.addEventListener("DOMContentLoaded", () => {
 
                 let slug_elem = document.getElementById("slug");
+                let short_elem = document.getElementById("short_url");
                 let url_elem = document.getElementById("url");
-
                 let send_btn_elem = document.getElementById("send");
                 let debug_elem = document.getElementById("debug");
 
@@ -48,6 +48,7 @@
                     }).then( resp => resp.json()).then( (json_data) => {
                         debug_elem.innerHTML = JSON.stringify(json_data, indent=4);
                         qrcode.src = "data:image/png;base64,"+json_data.qrcode
+                        short_elem.value = json_data.short_url
                     })
                 });
                 console.log("Hello World!");
