@@ -93,7 +93,7 @@ def create_short():
     if initial_target_slug.strip() == "":
         initial_target_slug = None
 
-    target_slug = content.get("target_slug", get_random_string(5))
+    target_slug = initial_target_slug or get_random_string(5)
     target_url = content.get("target_url")
 
     if target_url is None:
