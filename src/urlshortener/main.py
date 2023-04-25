@@ -1,30 +1,27 @@
-# import main Flask class and request object
-import logging
-import pathlib
-
-from flask import Flask, request, render_template, redirect
-import random
-from datetime import datetime
-import string
-from flask import g
-import time
-import threading
-import pathlib
-import os
 import base64
+import logging
+import os
+import pathlib
+import random
+import string
+import threading
+import uuid
+from datetime import datetime
 from io import BytesIO
 
-import yaml
-import logging
 import qrcode
+import yaml
+from flask import Flask, session, request, render_template, redirect
 from yaml.loader import SafeLoader
 
 log = logging.getLogger()
-OWN_URL = "https://short.flatos"
+OWN_URL = os.environ.get("URLSHORTNER_URL", "https://short.flatos")
+
 FILE_DB = pathlib.Path("urls.yaml")
 dblock = threading.Lock()
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("URLSHORTNER_SECRET_KEY")
 
 
 class DB:
@@ -41,7 +38,7 @@ class DB:
             found = len(kwargs)
             for key, value in kwargs.items():
                 if item.get(key) == value:
-                    found = found -1
+                    found = found - 1
             if found == 0:
                 return item
         return False
@@ -55,9 +52,9 @@ class DB:
 
     def register(self, target_slug, target_url):
         item = {
-                "target_url": target_url,
-                "target_slug": target_slug
-            }
+            "target_url": target_url,
+            "target_slug": target_slug
+        }
         self.data["urls"].append(item)
         return item
 
@@ -72,11 +69,13 @@ class DB:
         with FILE_DB.open("w") as fobj:
             yaml.dump(self.data, fobj, default_flow_style=False)
 
+
 def get_random_string(length):
     # choose from all lowercase letter
     letters = string.ascii_lowercase + string.digits
     result_str = ''.join(random.choice(letters) for i in range(length))
     return result_str
+
 
 # create the Flask app
 
@@ -118,8 +117,9 @@ def create_short():
                     log.info(f"{target_slug} is unique => {target_url}")
                     break
                 else:
-                    log.info("Retry to generate random string. Attempt: ", 3-_)
-                    target_slug = get_random_string(5+_)
+                    log.info("Retry to generate random string. Attempt: ",
+                             3 - _)
+                    target_slug = get_random_string(5 + _)
 
             item = db.register(target_slug, target_url)
         dblock.release()
@@ -130,7 +130,7 @@ def create_short():
             box_size=10,
             border=4,
         )
-        qr.add_data(OWN_URL+"/"+item.get("target_slug"))
+        qr.add_data(OWN_URL + "/" + item.get("target_slug"))
         qr.make(fit=True)
 
         img = qr.make_image(fill_color="black", back_color="white")
@@ -138,7 +138,7 @@ def create_short():
         img.save(buffered, format="JPEG")
         img_str = base64.b64encode(buffered.getvalue())
         item["qrcode"] = img_str.decode("utf-8")
-        item["short_url"] = OWN_URL+"/"+item.get("target_slug")
+        item["short_url"] = OWN_URL + "/" + item.get("target_slug")
         return item
     else:
         dblock.release()
@@ -151,19 +151,27 @@ def create_short():
 @app.route('/<slug>')
 def short_redirect(slug):
     if slug is not None:
+
+        if "urlshortner_uid" not in session:
+            session["urlshortner_uid"] = uuid.uuid4().hex()
+
         if dblock.acquire(blocking=True, timeout=5):
             with DB() as db:
                 item = db.find(target_slug=slug)
                 db.add_statistic(target_slug=slug, statistic={
                     "timestamp": datetime.now().isoformat(),
-                "ip": request.remote_addr,
-                "agent": request.user_agent})
+                    "uid": session["urlshortner_uid"],
+                    "ip": request.remote_addr,
+                    "agent": request.user_agent.string,
+                    "platform": request.user_agent.platform,
+                    "browser": request.user_agent.browser,
+                    "version": request.user_agent.version,
+                    "language": request.user_agent.language,
+                })
             dblock.release()
         if item:
             return redirect(item.get("target_url", ""))
         return "Invalid Short link"
-
-
 
 
 def start(*args, **kwargs):
