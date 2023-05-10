@@ -81,7 +81,7 @@ def get_random_string(length):
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return render_template('index.html', URLSHORTNER_URL=OWN_URL)
 
 
 @app.route('/api/short/', methods=['POST'])
@@ -153,7 +153,7 @@ def short_redirect(slug):
     if slug is not None:
 
         if "urlshortner_uid" not in session:
-            session["urlshortner_uid"] = uuid.uuid4().hex()
+            session["urlshortner_uid"] = uuid.uuid4().hex
 
         if dblock.acquire(blocking=True, timeout=5):
             with DB() as db:

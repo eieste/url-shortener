@@ -1,63 +1,262 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>URL-Shortner</title>
-        <style>
-            .box{
-                border: 1px solid black;
-            }
+<head>
+    <title>URL-Shortner</title>
+    <style>
+        .box {
+            border: 1px solid black;
+        }
 
-        </style>
+        @import url("https://rsms.me/inter/inter.css");
+        :root {
+            --color-light: white;
+            --color-dark: #212121;
+            --color-signal: #fab700;
+            --color-background: var(--color-light);
+            --color-text: var(--color-dark);
+            --color-accent: var(--color-signal);
+            --size-bezel: .5rem;
+            --size-radius: 4px;
+            line-height: 1.4;
+            font-family: "Inter", sans-serif;
+            font-size: calc(.6rem + .4vw);
+            color: var(--color-text);
+            background: var(--color-background);
+            font-weight: 300;
+            padding: 0 calc(var(--size-bezel) * 3);
+        }
 
-    </head>
-    <body>
-        <div class="box">
-            <label for="slug">Target-Slug</label>
-            <input type="text" id="slug" value="" />
+        h1, h2, h3 {
+            font-weight: 900;
+            padding:10px;
+        }
+
+        mark {
+            background: var(--color-accent);
+            color: var(--color-text);
+            font-weight: bold;
+            padding: 0 0.2em;
+        }
+
+        .card {
+            background: var(--color-background);
+            padding: calc(4 * var(--size-bezel));
+            margin-top: calc(4 * var(--size-bezel));
+            border-radius: var(--size-radius);
+            border: 3px solid var(--color-shadow, currentColor);
+            box-shadow: 0.5rem 0.5rem 0 var(--color-shadow, currentColor);
+        }
+
+        .card *:first-child {
+            margin-top: 0;
+        }
+
+        .input {
+            position: relative;
+        }
+
+        .input__label {
+            position: absolute;
+            left: 0;
+            top: 0;
+            padding: calc(var(--size-bezel) * 0.75) calc(var(--size-bezel) * .5);
+            margin: calc(var(--size-bezel) * 0.75 + 3px) calc(var(--size-bezel) * .5);
+            background: pink;
+            white-space: nowrap;
+            transform: translate(0, 0);
+            transform-origin: 0 0;
+            background: var(--color-background);
+            transition: transform 120ms ease-in;
+            font-weight: bold;
+            line-height: 1.2;
+        }
+
+        .input__field {
+            box-sizing: border-box;
+            display: block;
+            width: 100%;
+            border: 3px solid currentColor;
+            padding: calc(var(--size-bezel) * 1.5) var(--size-bezel);
+            color: currentColor;
+            background: transparent;
+            border-radius: var(--size-radius);
+        }
+
+        .input__field:not(:-moz-placeholder-shown) + .input__label {
+            transform: translate(0.25rem, -65%) scale(0.8);
+            color: var(--color-accent);
+        }
+
+        .input__field:not(:-ms-input-placeholder) + .input__label {
+            transform: translate(0.25rem, -65%) scale(0.8);
+            color: var(--color-accent);
+        }
+
+        .input__field:focus + .input__label, .input__field:not(:placeholder-shown) + .input__label {
+            transform: translate(0.25rem, -65%) scale(0.8);
+            color: var(--color-accent);
+        }
+
+        .button-group {
+            margin-top: calc(var(--size-bezel) * 2.5);
+            float:right;
+            display: inline-block;
+            position: relative;
+            padding:20px;
+        }
+
+        button {
+            color: currentColor;
+            padding: var(--size-bezel) calc(var(--size-bezel) * 2);
+            background: var(--color-accent);
+            border: none;
+            border-radius: var(--size-radius);
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        button[type=reset] {
+            background: var(--color-background);
+            font-weight: 200;
+        }
+
+        button + button {
+            margin-left: calc(var(--size-bezel) * 2);
+        }
+
+        .target-url {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .target-url .urlshortener-url {
+            font-weight: bold;
+        }
+
+        .target-url .input {
+            position: relative;
+            width: calc(100% / 5);
+            display: inline-block;
+        }
+
+        .target-url .input .input__field {
+            position: relative;
+            display: inline;
+        }
+
+        .target-url .input .input__label {
+        }
+
+    * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.cen-container {
+  position: relative;
+  height: 100vh;
+}
+
+.centered-element {
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+    </style>
+
+</head>
+<body>
+
+<div class="cen-container">
+    <div class="centered-element">
+
+        <div class="card">
+            <h2>
+                URL Shortener
+            </h2>
+
+            <label class="input">
+                <input class="input__field" type="url" id="url"
+                       placeholder=" "/>
+                <span class="input__label">Target URL</span>
+            </label>
+
+            <div class="target-url">
+                <span class="urlshortener-url">{{URLSHORTNER_URL}}/</span>
+
+                <label class="input">
+                    <input class="input__field" type="text" id="slug"
+                           placeholder=" "/>
+                    <span class="input__label">Slug</span>
+                </label>
+            </div>
+
+            <div class="button-group">
+                <button id="send">Send</button>
+            </div>
         </div>
-        <div class="box">
-            <label for="url">URL</label>
-            <input type="text" id="url" value="" />
-        </div>
-        <input type="button" value="Send" id="send"/>
-        <input type="text" id="short_url" />
-        <img src="" id="qrcode" />
+    </div>
+</div>
 
-        <pre id="debug"></pre>
+<!--
 
-        <script type="application/javascript">
-            document.addEventListener("DOMContentLoaded", () => {
+<div class="box">
+    <label for="slug">Target-Slug</label>
+    <input type="text" id="slug" value=""/>
+</div>
+<div class="box">
+    <label for="url">URL</label>
+    <input type="text" id="url" value=""/>
+</div>
+<input type="button" value="Send" id="send"/>
+<input type="text" id="short_url"/>
+<img src="" id="qrcode"/>
 
-                let slug_elem = document.getElementById("slug");
-                let short_elem = document.getElementById("short_url");
-                let url_elem = document.getElementById("url");
-                let send_btn_elem = document.getElementById("send");
-                let debug_elem = document.getElementById("debug");
+<pre id="debug"></pre>
+-->
 
-                send_btn_elem.addEventListener("click", (event) => {
+<script type="application/javascript">
+    document.addEventListener("DOMContentLoaded", () => {
 
-                    fetch("/api/short", {
-                        "method": "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                        "body": JSON.stringify({
-                            "target_slug": slug_elem.value,
-                            "target_url": url_elem.value
-                        })
-                    }).then( resp => resp.json()).then( (json_data) => {
-                        debug_elem.innerHTML = JSON.stringify(json_data, indent=4);
-                        qrcode.src = "data:image/png;base64,"+json_data.qrcode
-                        short_elem.value = json_data.short_url
-                    })
-                });
-                console.log("Hello World!");
-            });
+        let slug_elem = document.getElementById("slug");
+        let short_elem = document.getElementById("short_url");
+        let url_elem = document.getElementById("url");
+        let send_btn_elem = document.getElementById("send");
+        let debug_elem = document.getElementById("debug");
+
+        send_btn_elem.addEventListener("click", (event) => {
+
+            fetch("/api/short", {
+                "method": "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                "body": JSON.stringify({
+                    "target_slug": slug_elem.value,
+                    "target_url": url_elem.value
+                })
+            }).then(resp => resp.json()).then((json_data) => {
+                debug_elem.innerHTML = JSON.stringify(json_data, indent = 4);
+                qrcode.src = "data:image/png;base64," + json_data.qrcode
+                short_elem.value = json_data.short_url
+            })
+        });
+        console.log("Hello World!");
+    });
 
 
-        </script>
+    /*
+        window.setTimeout( () => {
+            window.location.reload();
+        }, 1000)*/
+
+</script>
 
 
-    </body>
+</body>
 
 </html>
