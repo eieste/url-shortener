@@ -59,6 +59,8 @@ class DB:
         return item
 
     def __enter__(self):
+        if not FILE_DB.exists():
+            FILE_DB.touch()
         with FILE_DB.open("r") as fobj:
             data = yaml.load(fobj, Loader=SafeLoader)
             if data is not None:

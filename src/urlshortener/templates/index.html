@@ -40,11 +40,15 @@
 
         .card {
             background: var(--color-background);
-            padding: calc(4 * var(--size-bezel));
             margin-top: calc(4 * var(--size-bezel));
             border-radius: var(--size-radius);
             border: 3px solid var(--color-shadow, currentColor);
             box-shadow: 0.5rem 0.5rem 0 var(--color-shadow, currentColor);
+        }
+
+        .card .card-inner{
+            padding: calc(4 * var(--size-bezel));
+
         }
 
         .card *:first-child {
@@ -98,11 +102,7 @@
         }
 
         .button-group {
-            margin-top: calc(var(--size-bezel) * 2.5);
-            float:right;
-            display: inline-block;
-            position: relative;
-            padding:20px;
+            width: 100%;
         }
 
         button {
@@ -113,6 +113,8 @@
             border-radius: var(--size-radius);
             font-weight: 900;
             cursor: pointer;
+            width: 100%;
+            height: 50px;
         }
 
         button[type=reset] {
@@ -147,24 +149,24 @@
         .target-url .input .input__label {
         }
 
-    * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
 
-.cen-container {
-  position: relative;
-  height: 100vh;
-}
+        .cen-container {
+          position: relative;
+          height: 100vh;
+        }
 
-.centered-element {
-  margin: 0;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
+        .centered-element {
+          margin: 0;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+        }
 
     </style>
 
@@ -175,30 +177,43 @@
     <div class="centered-element">
 
         <div class="card">
-            <h2>
-                URL Shortener
-            </h2>
-
-            <label class="input">
-                <input class="input__field" type="url" id="url"
-                       placeholder=" "/>
-                <span class="input__label">Target URL</span>
-            </label>
-
-            <div class="target-url">
-                <span class="urlshortener-url">{{URLSHORTNER_URL}}/</span>
+            <div class="card-inner">
+                <h2>
+                    URL Shortener
+                </h2>
 
                 <label class="input">
-                    <input class="input__field" type="text" id="slug"
+                    <input class="input__field" type="url" id="url"
                            placeholder=" "/>
-                    <span class="input__label">Slug</span>
+                    <span class="input__label">Target URL</span>
                 </label>
-            </div>
 
+                <div class="target-url">
+                    <span class="urlshortener-url">{{URLSHORTNER_URL}}/</span>
+
+                    <label class="input">
+                        <input class="input__field" type="text" id="slug"
+                               placeholder=" "/>
+                        <span class="input__label">Slug</span>
+                    </label>
+                </div>
+            </div>
             <div class="button-group">
                 <button id="send">Send</button>
             </div>
         </div>
+
+
+        <div class="card" id="resultdisplay" style="display: none;">
+            <div class="card-inner">
+                Short-URL: <a href="" id="target_short_url"></a></br>
+                TargetURL-URL: <a href="" id="target_full_url"></a></br>
+                InspectURL-URL: <a href="" id="target_inspect_url"></a></br>
+                QRCode:</br> <img alt="Short URL QR Code" src="" id="qrcode" />
+            </div>
+        </div>
+
+
     </div>
 </div>
 
@@ -221,12 +236,21 @@
 
 <script type="application/javascript">
     document.addEventListener("DOMContentLoaded", () => {
+        /*
+        window.setInterval(() => {
+            window.location.reload();
+        }, 1000)
+*/
 
         let slug_elem = document.getElementById("slug");
-        let short_elem = document.getElementById("short_url");
+        let resultdisplay_elem = document.getElementById("resultdisplay");
+        let target_short_elem = document.getElementById("target_short_url");
+        let target_full_url_elem = document.getElementById("target_full_url");
+
+        let target_qrcode_elem = document.getElementById("qrcode");
         let url_elem = document.getElementById("url");
         let send_btn_elem = document.getElementById("send");
-        let debug_elem = document.getElementById("debug");
+
 
         send_btn_elem.addEventListener("click", (event) => {
 
@@ -240,19 +264,15 @@
                     "target_url": url_elem.value
                 })
             }).then(resp => resp.json()).then((json_data) => {
-                debug_elem.innerHTML = JSON.stringify(json_data, indent = 4);
-                qrcode.src = "data:image/png;base64," + json_data.qrcode
-                short_elem.value = json_data.short_url
+                resultdisplay_elem.style.display="block";
+                target_qrcode_elem.src = "data:image/png;base64," + json_data.qrcode
+                target_short_elem.innerHTML = json_data.short_url
+                target_short_elem.href = json_data.short_url
+                target_full_url_elem.href = json_data.target_url
+                target_full_url_elem.innerHTML = json_data.target_url
             })
         });
-        console.log("Hello World!");
     });
-
-
-    /*
-        window.setTimeout( () => {
-            window.location.reload();
-        }, 1000)*/
 
 </script>
 
