@@ -1,89 +1,38 @@
-import base64
 import logging
-import os
-import pathlib
-import random
-import string
 import threading
 import uuid
 from datetime import datetime
-from io import BytesIO
+from flask import send_file
 
-import qrcode
-import yaml
 from flask import Flask, session, request, render_template, redirect
-from yaml.loader import SafeLoader
+from urlshortener.contrib.db import DB
+from urlshortener.config import settings
+from urlshortener.contrib.generator import get_random_string, get_qrcode
 
 log = logging.getLogger()
-OWN_URL = os.environ.get("URLSHORTNER_URL", "https://short.flatos")
 
-FILE_DB = pathlib.Path("urls.yaml")
 dblock = threading.Lock()
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("URLSHORTNER_SECRET_KEY")
-
-
-class DB:
-
-    def __init__(self):
-        self.data = {"urls": []}
-
-        if not FILE_DB.exists():
-            FILE_DB.touch()
-
-    def find(self, **kwargs):
-
-        for item in self.data.get("urls", []):
-            found = len(kwargs)
-            for key, value in kwargs.items():
-                if item.get(key) == value:
-                    found = found - 1
-            if found == 0:
-                return item
-        return False
-
-    def add_statistic(self, target_slug, statistic):
-        for urlitem in self.data.get("urls", []):
-            if urlitem.get("target_slug") == target_slug:
-                if "statistics" not in urlitem:
-                    urlitem["statistics"] = []
-                urlitem["statistics"].append(statistic)
-
-    def register(self, target_slug, target_url):
-        item = {
-            "target_url": target_url,
-            "target_slug": target_slug
-        }
-        self.data["urls"].append(item)
-        return item
-
-    def __enter__(self):
-        if not FILE_DB.exists():
-            FILE_DB.touch()
-        with FILE_DB.open("r") as fobj:
-            data = yaml.load(fobj, Loader=SafeLoader)
-            if data is not None:
-                self.data = data
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        with FILE_DB.open("w") as fobj:
-            yaml.dump(self.data, fobj, default_flow_style=False)
-
-
-def get_random_string(length):
-    # choose from all lowercase letter
-    letters = string.ascii_lowercase + string.digits
-    result_str = ''.join(random.choice(letters) for i in range(length))
-    return result_str
+app.secret_key = settings.SECRET_KEY
 
 
 # create the Flask app
 
 @app.route('/')
 def home():
-    return render_template('index.html', URLSHORTNER_URL=OWN_URL)
+    return render_template('index.html', URLSHORTNER_URL=settings.DOMAIN)
+
+
+
+@app.route('/api/qrcode/<slug>', methods=['GET'])
+def show_qrcode(slug):
+        return send_file(
+            get_qrcode(settings.DOMAIN + "/" + slug),
+            mimetype='image/jpeg',
+            as_attachment=False,
+            download_name='%s.jpg' % pid)
+
 
 
 @app.route('/api/short/', methods=['POST'])
@@ -101,7 +50,7 @@ def create_short():
         return {
             "state": "err",
             "msg": "no_target_url"
-        }
+        }, 400
 
     if dblock.acquire(blocking=True, timeout=5):
         with DB() as db:
@@ -114,7 +63,7 @@ def create_short():
                     return {
                         "state": "err",
                         "msg": "slug_already_exists"
-                    }
+                    }, 400
                 elif not x:
                     log.info(f"{target_slug} is unique => {target_url}")
                     break
@@ -124,31 +73,18 @@ def create_short():
                     target_slug = get_random_string(5 + _)
 
             item = db.register(target_slug, target_url)
+
         dblock.release()
 
-        qr = qrcode.QRCode(
-            version=1,
-            error_correction=qrcode.constants.ERROR_CORRECT_L,
-            box_size=10,
-            border=4,
-        )
-        qr.add_data(OWN_URL + "/" + item.get("target_slug"))
-        qr.make(fit=True)
-
-        img = qr.make_image(fill_color="black", back_color="white")
-        buffered = BytesIO()
-        img.save(buffered, format="JPEG")
-        img_str = base64.b64encode(buffered.getvalue())
-        item["qrcode"] = img_str.decode("utf-8")
-        item["short_url"] = OWN_URL + "/" + item.get("target_slug")
+        item["qrcode"] = get_qrcode(settings.DOMAIN + "/" + item.get("target_slug"))
+        item["short_url"] = settings.DOMAIN + "/" + item.get("target_slug")
         return item
     else:
         dblock.release()
         return {
             "state": "err",
             "msg": "db_timeout"
-        }
-
+        }, 400
 
 @app.route('/<slug>')
 def short_redirect(slug):
@@ -173,12 +109,12 @@ def short_redirect(slug):
             dblock.release()
         if item:
             return redirect(item.get("target_url", ""))
-        return "Invalid Short link"
+        return "Invalid Short link", 400
 
 
 def start(*args, **kwargs):
     # run app in debug mode on port 5000
-    app.run(debug=True, port=5000)
+    app.run(debug=settings.FLASK_DEBUG, port=8000)
 
 
 if __name__ == '__main__':

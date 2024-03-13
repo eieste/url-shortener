@@ -11,6 +11,8 @@ services:
       - 8000:8000
     volumes:
       - ./urls.yaml:/app/urls.yaml
+      - ./src/urlshortener:/app/src/urlshortener
     environment:
       - URLSHORTNER_SECRET_KEY=cheishue5zoo8chiegiuH5ahtoo$ho
       - URLSHORTNER_URL=https://short.flatos
+      - FLASK_DEBUG=true
