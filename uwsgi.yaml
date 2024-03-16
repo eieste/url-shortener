@@ -3,4 +3,4 @@ uwsgi:
   workers: 3
   module: urlshortener.main:app
   master: false
-  chdir: /app/src
+  chdir: /app

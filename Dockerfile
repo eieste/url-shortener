@@ -6,10 +6,11 @@ RUN pip3 install pillow \
                  qrcode \
                  uwsgi
 
-COPY ./ /app/
+COPY ./src/ /app/
+COPY ./uwsgi.yaml /
 COPY ./entrypoint.bash /
 
-RUN cd /app/
+RUN cd /app/; touch __init__.py
 
 RUN useradd -ms /bin/bash app; \
     chown -R app:app /app

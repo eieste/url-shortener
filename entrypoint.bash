@@ -1,14 +1,16 @@
 #!/bin/bash
 
-cd /app/src/urlshortener/
+cd /app/
 
 
 
 if [ "$FLASK_DEBUG" == "true" ]
 then
-    python3 main.py 
+    cd /app/;
+    ls -lah;
+    python3 -m urlshortener main.py
 else
-    uwsgi --yaml /app/uwsgi.yaml
+    uwsgi --yaml /uwsgi.yaml
 fi
 
 

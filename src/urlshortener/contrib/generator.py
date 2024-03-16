@@ -18,7 +18,7 @@ def get_qrcode(url):
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_L,
         box_size=10,
-        border=4,
+        border=1,
     )
     qr.add_data(url)
     qr.make(fit=True)
@@ -26,4 +26,5 @@ def get_qrcode(url):
     img = qr.make_image(fill_color="black", back_color="white")
     buffered = BytesIO()
     img.save(buffered, format="JPEG")
-    return base64.b64encode(buffered.getvalue()).decode("utf-8")
+    buffered.seek(0)
+    return buffered

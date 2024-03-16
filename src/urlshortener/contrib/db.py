@@ -1,6 +1,11 @@
 from urlshortener.config import settings
 import yaml
 from yaml import SafeLoader
+import logging
+
+
+log = logging.getLogger("urlshortener")
+logging.basicConfig(level=logging.DEBUG)
 
 
 class DB:
@@ -9,6 +14,7 @@ class DB:
         self.data = {"urls": []}
 
         if not settings.DB_FILE.exists():
+            log.debug(settings.DB_FILE.absolute())
             settings.DB_FILE.touch()
 
     def find(self, **kwargs):

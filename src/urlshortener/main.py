@@ -3,8 +3,8 @@ import threading
 import uuid
 from datetime import datetime
 from flask import send_file
-
-from flask import Flask, session, request, render_template, redirect
+import base64
+from flask import Flask, session, request, render_template, url_for, redirect
 from urlshortener.contrib.db import DB
 from urlshortener.config import settings
 from urlshortener.contrib.generator import get_random_string, get_qrcode
@@ -19,10 +19,12 @@ app.secret_key = settings.SECRET_KEY
 
 # create the Flask app
 
+#app.add_url_rule('/favicon.ico',
+#                 redirect_to=url_for('static', filename='favicon.ico'))
+
 @app.route('/')
 def home():
     return render_template('index.html', URLSHORTNER_URL=settings.DOMAIN)
-
 
 
 @app.route('/api/qrcode/<slug>', methods=['GET'])
@@ -30,10 +32,7 @@ def show_qrcode(slug):
         return send_file(
             get_qrcode(settings.DOMAIN + "/" + slug),
             mimetype='image/jpeg',
-            as_attachment=False,
-            download_name='%s.jpg' % pid)
-
-
+            as_attachment=False)
 
 @app.route('/api/short/', methods=['POST'])
 def create_short():
@@ -72,11 +71,13 @@ def create_short():
                              3 - _)
                     target_slug = get_random_string(5 + _)
 
+            target_url = target_url.replace("--slug--", target_slug)
+
             item = db.register(target_slug, target_url)
 
         dblock.release()
-
-        item["qrcode"] = get_qrcode(settings.DOMAIN + "/" + item.get("target_slug"))
+        qr_code_img = get_qrcode(settings.DOMAIN + "/" + item.get("target_slug"))
+        item["qrcode"] = base64.b64encode(qr_code_img.getvalue()).decode("utf-8")
         item["short_url"] = settings.DOMAIN + "/" + item.get("target_slug")
         return item
     else:
@@ -114,7 +115,7 @@ def short_redirect(slug):
 
 def start(*args, **kwargs):
     # run app in debug mode on port 5000
-    app.run(debug=settings.FLASK_DEBUG, port=8000)
+    app.run(debug=settings.FLASK_DEBUG, port=8000, host="0.0.0.0")
 
 
 if __name__ == '__main__':
