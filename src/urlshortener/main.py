@@ -26,7 +26,6 @@ app.secret_key = settings.SECRET_KEY
 def home():
     return render_template('index.html', URLSHORTNER_URL=settings.DOMAIN)
 
-
 @app.route('/api/qrcode/<slug>', methods=['GET'])
 def show_qrcode(slug):
         return send_file(
